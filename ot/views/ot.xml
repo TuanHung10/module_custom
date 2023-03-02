@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Tree view for ot Request -->
+    <record model="ir.ui.view" id="view_ot_request_tree">
+        <field name="name">OT Request Tree View</field>
+        <field name="model">ot.request</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="project_id"/>
+                <field name="employee_id"/>
+                <field name="manager_id"/>
+                <field name="total_hours"/>
+                <field name="state"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Form view for ot Request -->
+    <record model="ir.ui.view" id="view_ot_request_form">
+        <field name="name">OT Request Form View</field>
+        <field name="model">ot.request</field>
+        <field name="arch" type="xml">
+            <form string="OT Request Form">
+              <header>
+                 <field name="state" widget="statusbar" readonly="1"/>
+              </header>
+                    <group>
+                        <group>
+                            <field name="project_id"/>
+                        </group>
+                        <group>
+                            <field name="employee_id" readonly="1"/>
+                            <field name="manager_id" readonly="1"/>
+                            <field name="create_date" readonly="1"/>
+                            <field name="total_hours" readonly="1"/>
+                        </group>
+                    </group>
+                <notebook>
+                    <page string="OT Request Lines">
+                        <field name="ot_request_lines">
+                            <tree editable="bottom">
+                                <field name="from_time"/>
+                                <field name="to_time"/>
+                                <field name="ot_category"/>
+                                <field name="wfh"/>
+                                <field name="job_taken"/>
+                                <field name="ot_hours"/>
+                                <field name="state"/>
+                                <field name="late_approved"/>
+                                <field name="notes"/>
+                            </tree>
+                            <form>
+                                <group>
+                                    <field name="from_time"/>
+                                    <field name="to_time"/>
+                                    <field name="ot_category" readonly="1"/>
+                                    <field name="wfh"/>
+                                    <field name="job_taken"/>
+                                    <field name="ot_hours" readonly="1"/>
+                                </group>
+                                <group>
+                                    <field name="state" readonly="1"/>
+                                    <field name="late_approved"/>
+                                    <field name="notes"/>
+                                </group>
+                            </form>
+                        </field>
+                    </page>
+                </notebook>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="activity_ids" widget="mail_activity"/>
+                    <field name="message_ids" widget="mail_thread" options="{'post_refresh': 'recipients'}"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action for ot Request -->
+    <record model="ir.actions.act_window" id="action_ot_request">
+        <field name="name">OT Request</field>
+        <field name="res_model">ot.request</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="oe_view_nocontent_create">
+                Click here to create a new OT request.
+            </p>
+        </field>
+    </record>
+
+    <!-- Menu for ot Request -->
+    <menuitem id="menu_ot_request" name="OT Request"/>
+    <menuitem id="menu_ot_request_view" name="OT Request" parent="menu_ot_request"/>
+    <menuitem id="menu_ot_request_form" name="OT Request" parent="menu_ot_request_view" action="action_ot_request"/>
+</odoo>
