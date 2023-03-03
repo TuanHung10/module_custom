@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <record id="mypet_plus_my_pet_form_view" model="ir.ui.view">
+            <field name="name">mypet.plus.my.pet.form.view</field>
+            <field name="model">my.pet</field>
+            <field name="inherit_id" ref="mypet.my_pet_form_view"/>
+            <field name="arch" type="xml">
+                <xpath expr="//group[@name='images']/group[2]" position="inside">
+                    <field name="toy"/>
+                </xpath>
+                <xpath expr="//field[@name='product_ids']" position="replace">
+                    <!-- empty -->
+                </xpath>
+                <xpath expr="//field[@name='description']" position="attributes">
+                    <attribute name="invisible">1</attribute> <!-- hide description field -->
+                </xpath>
+                <xpath expr="//label[@for='description']" position="attributes">
+                    <attribute name="invisible">1</attribute> <!-- hide label of description field -->
+                </xpath>
+                <xpath expr="//field[@name='nickname']" position="attributes">
+                    <attribute name="string">Pet Nick Name</attribute> <!-- change nickname field label to "Pet Nick Name" -->
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>

@@ -21,20 +21,26 @@
         <field name="model">ot.request</field>
         <field name="arch" type="xml">
             <form string="OT Request Form">
-              <header>
-                 <field name="state" widget="statusbar" readonly="1"/>
-              </header>
+                <header>
+                    <field name="state" widget="statusbar" readonly="1"/>
+                    <button name="reset_draft" type="object" string="Reset to Draft" class="oe_highlight" confirm="Set OT request to Draft?"/>
+                    <button name="button_pm_approve" string="PM Approve" type="object" class="oe_highlight"/>
+                    <button name="button_dl_approve" string="Dl Approve" type="object" class="oe_highlight"/>
+                    <button name="refuse_request" type="object" string="Refuse" class="oe_highlight" confirm="Are you sure to Refuse the OT request?"/>
+                </header>
+                <group>
                     <group>
-                        <group>
-                            <field name="project_id"/>
-                        </group>
-                        <group>
-                            <field name="employee_id" readonly="1"/>
-                            <field name="manager_id" readonly="1"/>
-                            <field name="create_date" readonly="1"/>
-                            <field name="total_hours" readonly="1"/>
-                        </group>
+                        <field name="project_id"/>
+                        <field name="dl_manager_id" string="Approver"/>
+                        <field name="ot_month"/>
                     </group>
+                    <group>
+                        <field name="employee_id" readonly="1"/>
+                        <field name="manager_id" readonly="1"/>
+                        <field name="create_date" readonly="1"/>
+                        <field name="total_hours" readonly="1"/>
+                    </group>
+                </group>
                 <notebook>
                     <page string="OT Request Lines">
                         <field name="ot_request_lines">
