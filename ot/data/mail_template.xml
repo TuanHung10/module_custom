@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+  <data>
+    <record id="mail_template_pm_notification" model="mail.template">
+      <field name="name">PM Notification</field>
+      <field name="model_id" ref="ot.model_ot_request"/>
+      <field name="email_from">${user.email_formatted|safe}</field>
+      <field name="subject">New Overtime Request</field>
+      <field name="email_to">${object.employee_id.parent_id.work_email|safe}</field>
+      <field name="body_html">
+        <![CDATA[
+          <p>Dear ${object.employee_id.parent_id.name},</p>
+          <p>A new overtime request has been submitted by ${object.employee_id.name}.</p>
+          <p>You can approve or reject the request by logging into Odoo and clicking the link below:</p>
+          <p><a href="${object.get_base_url()}/web?#id=${object.id}&amp;view_type=form&amp;model=ot.request">${object.name}</a></p>
+          <p>Best regards,</p>
+          <p>${user.name}</p>
+        ]]>
+      </field>
+    </record>
+    <record id="mail_template_dl_notification" model="mail.template">
+      <field name="name">Department Lead Notification</field>
+      <field name="model_id" ref="ot.model_ot_request"/>
+      <field name="email_from">${user.email_formatted|safe}</field>
+      <field name="subject">Overtime Request Approved</field>
+      <field name="email_to">${object.employee_id.work_email|safe}</field>
+      <field name="body_html">
+        <![CDATA[
+          <p>Dear ${object.employee_id.name},</p>
+          <p>Your overtime request has been approved by your department lead.</p>
+          <p>You can view the details of your request by logging into Odoo and clicking the link below:</p>
+          <p><a href="${object.get_base_url()}/web?#id=${object.id}&amp;view_type=form&amp;model=ot.request">${object.name}</a></p>
+          <p>Best regards,</p>
+          <p>${user.name}</p>
+        ]]>
+      </field>
+    </record>
+    <record id="mail_template_employee_notification" model="mail.template">
+      <field name="name">Employee Notification</field>
+      <field name="model_id" ref="ot.model_ot_request"/>
+      <field name="email_from">${user.email_formatted|safe}</field>
+      <field name="subject">Overtime Request Status Update</field>
+      <field name="email_to">${object.employee_id.work_email|safe}</field>
+      <field name="body_html">
+        <![CDATA[
+          <p>Dear ${object.employee_id.name},</p>
+          <p>Your overtime request has been updated.</p>
+          <p>You can view the details of your request by logging into Odoo and clicking the link below:</p>
+          <p><a href="${object.get_base_url()}/web?#id=${object.id}&amp;view_type=form&amp;model=ot.request">${object.name}</a></p>
+          <p>Best regards,</p>
+          <p>${user.name}</p>
+        ]]>
+      </field>
+    </record>
+  </data>
+</odoo>

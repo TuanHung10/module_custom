@@ -14,7 +14,8 @@
 
     'data': [
         'security/ir.model.access.csv',
-        'views/ot.xml'
+        'views/ot.xml',
+        'data/mail_template.xml'
     ],
 
     'images': [],
