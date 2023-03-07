@@ -8,7 +8,7 @@ from datetime import datetime
 class OTRequest(models.Model):
     _name = 'ot.request'
     _inherit = ['mail.thread', 'mail.activity.mixin']
-    _description = 'ot Request'
+    _description = 'OT Request'
 
     employee_id = fields.Many2one('hr.employee', string='Employee', required=True,
                                   default=lambda self: self.env.user.employee_ids)
@@ -27,16 +27,6 @@ class OTRequest(models.Model):
         for record in self:
             record.total_hours = sum(record.ot_request_lines.mapped('ot_hours'))
 
-    # @api.depends('ot_request_lines.from_time')
-    # def _compute_month(self):
-    #     for rec in self:
-    #         month = ''
-    #         if rec.ot_request_lines:
-    #             from_time = fields.Datetime.from_string(rec.ot_request_lines[0].from_time)
-    #             month = from_time.strftime('%B %Y')
-    #         rec.ot_month = month
-
-
     @api.depends('employee_id')
     def _compute_manager_id(self):
         for request in self:
@@ -49,46 +39,49 @@ class OTRequest(models.Model):
         for rec in self:
             rec.state = 'draft'
 
+    def submit_request(self):
+        for rec in self:
+            rec.state = 'to_approve'
+            rec.send_pm_notification()
+            rec.send_employee_notification()
+
     def button_pm_approve(self):
         for rec in self:
             rec.state = 'pm_approved'
-            rec.send_pm_notification()
+            rec.send_dl_notification()
             rec.send_employee_notification()
 
     def button_dl_approve(self):
         for rec in self:
             rec.state = 'dl_approved'
-            rec.send_dl_notification()
             rec.send_employee_notification()
 
     def refuse_request(self):
         for rec in self:
             rec.state = 'refused'
+            rec.send_employee_notification()
 
     @api.multi
     def send_pm_notification(self):
-        # pm = self.env['hr.employee'].search([('is_pm', '=', True)])
-        # if pm:
-        #     mail_template = self.env.ref('ot.mail_template_pm_notification')
-        #     mail_template.write({'email_to': pm.work_email})
-        #     mail_template.send_mail(self.id, force_send=True)
-        print('send pm')
+        pm = self.env['hr.employee'].search([('job_id', '=', 9)])
+        if pm:
+            mail_template = self.env.ref('ot.mail_template_pm_notification')
+            mail_template.write({'email_to': pm.work_email})
+            mail_template.send_mail(self.id, force_send=True)
 
     @api.multi
     def send_dl_notification(self):
-        # pm = self.env['hr.employee'].search([('is_pm', '=', True)])
-        # if pm:
-        #     mail_template = self.env.ref('ot.mail_template_pm_notification')
-        #     mail_template.write({'email_to': pm.work_email})
-        #     mail_template.send_mail(self.id, force_send=True)
-        print('send dl')
+        dl = self.env['hr.employee'].search([('is_dl', '=', True)])
+        if dl:
+            mail_template = self.env.ref('ot.mail_template_pm_notification')
+            mail_template.write({'email_to': dl.work_email})
+            mail_template.send_mail(self.id, force_send=True)
 
     @api.multi
     def send_employee_notification(self):
-        # mail_template = self.env.ref('your_module.mail_template_employee_notification')
-        # mail_template.write({'email_to': self.employee_id.work_email})
-        # mail_template.send_mail(self.id, force_send=True)
-        print('send employee')
+        mail_template = self.env.ref('ot.mail_template_employee_notification')
+        mail_template.write({'email_to': self.employee_id.work_email})
+        mail_template.send_mail(self.id, force_send=True)
 
 
 class OTRequestLine(models.Model):
@@ -107,11 +100,27 @@ class OTRequestLine(models.Model):
     job_taken = fields.Char(string='Job Taken')
     ot_hours = fields.Float(string='OT Hours', compute='_compute_ot_hours', store=True)
     state = fields.Selection(
-        [('draft', 'Draft'), ('pm_approved', 'PM Approved'), ('dl_approved', 'DL Approved'), ('refused', 'Refused')],
-        default='draft')
+        related='ot_request_id.state',
+        string='State',
+        readonly=True
+    )
     late_approved = fields.Boolean(string='Late Approved')
     notes = fields.Text(string='Notes')
 
+    @api.depends('ot_request.state')
+    def _compute_state(self):
+        for request in self:
+            states = request.ot_request.mapped('state')
+            if 'refused' in states:
+                request.state = 'refused'
+            elif 'to_approve' in states:
+                request.state = 'to_approve'
+            elif 'pm_approved' in states:
+                request.state = 'pm_approved'
+            elif 'dl_approved' in states:
+                request.state = 'dl_approved'
+            else:
+                request.state = 'draft'
 
     @api.depends('from_time', 'to_time')
     def _compute_ot_category(self):
@@ -143,12 +152,15 @@ class OTRequestLine(models.Model):
                 delta = record.to_time - record.from_time
                 record.ot_hours = delta.total_seconds() / 3600
 
+    # Xu li thang OT month
 
-    #Viet ham late approved se duoc auto tick khi: ban ghi duoc approve vao thoi diem month now != from_time month
-    #Thang state o ca 2 class phai khop voi nhau tren record
-    #Xu li thang OT month
-    #Phan quyen, button hien thi
-    #Xu li OT category
-    #Phai send duoc mail nhu tren youtube odoomate sau khi an vao 1 action
+    # Xu li OT category
 
+    # Phan quyen, button hien thi: PM, DL can not create,edit, delete request
 
+    #ot request sau khi bi refuse se o state refuse, khi employee bam vao se hien thi nut reset to draft
+
+    # Viet ham late approved se duoc auto tick khi: ban ghi duoc approve vao thoi diem month now != from_time month
+
+    #@api.model tao 1 lan 1 record, @api.model_create_multi tao 1 lan nhieu records (moi lan goi ham)
+    #record la object, model la class

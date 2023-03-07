@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 {
-    'name': 'ot Management',
+    'name': 'OT Management',
 
     'version': '1.0',
 
-    'summary': 'ot',
+    'summary': 'OT',
 
     'category': 'Tools',
 

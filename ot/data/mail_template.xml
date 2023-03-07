@@ -11,8 +11,7 @@
         <![CDATA[
           <p>Dear ${object.employee_id.parent_id.name},</p>
           <p>A new overtime request has been submitted by ${object.employee_id.name}.</p>
-          <p>You can approve or reject the request by logging into Odoo and clicking the link below:</p>
-          <p><a href="${object.get_base_url()}/web?#id=${object.id}&amp;view_type=form&amp;model=ot.request">${object.name}</a></p>
+          <p>You can approve or reject the request by logging into Odoo in OT management</p>
           <p>Best regards,</p>
           <p>${user.name}</p>
         ]]>
@@ -22,14 +21,13 @@
       <field name="name">Department Lead Notification</field>
       <field name="model_id" ref="ot.model_ot_request"/>
       <field name="email_from">${user.email_formatted|safe}</field>
-      <field name="subject">Overtime Request Approved</field>
-      <field name="email_to">${object.employee_id.work_email|safe}</field>
+      <field name="subject">New Overtime Request</field>
+      <field name="email_to">${object.employee_id.coach_id.work_email|safe}</field>
       <field name="body_html">
         <![CDATA[
-          <p>Dear ${object.employee_id.name},</p>
-          <p>Your overtime request has been approved by your department lead.</p>
-          <p>You can view the details of your request by logging into Odoo and clicking the link below:</p>
-          <p><a href="${object.get_base_url()}/web?#id=${object.id}&amp;view_type=form&amp;model=ot.request">${object.name}</a></p>
+          <p>Dear ${object.employee_id.coach_id.name},</p>
+          <p>A new overtime request has been submitted by ${object.employee_id.name}.</p>
+          <p>You can approve or reject the request by logging into Odoo in OT management</p>
           <p>Best regards,</p>
           <p>${user.name}</p>
         ]]>
@@ -45,9 +43,7 @@
         <![CDATA[
           <p>Dear ${object.employee_id.name},</p>
           <p>Your overtime request has been updated.</p>
-          <p>You can view the details of your request by logging into Odoo and clicking the link below:</p>
-          <p><a href="${object.get_base_url()}/web?#id=${object.id}&amp;view_type=form&amp;model=ot.request">${object.name}</a></p>
-          <p>Best regards,</p>
+          <p>You can view the details of your request by logging into Odoo in OT management</p>
           <p>${user.name}</p>
         ]]>
       </field>

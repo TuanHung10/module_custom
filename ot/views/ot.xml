@@ -15,7 +15,7 @@
         </field>
     </record>
 
-    <!-- Form view for ot Request -->
+    <!-- Form view for OT Request -->
     <record model="ir.ui.view" id="view_ot_request_form">
         <field name="name">OT Request Form View</field>
         <field name="model">ot.request</field>
@@ -23,6 +23,7 @@
             <form string="OT Request Form">
                 <header>
                     <field name="state" widget="statusbar" readonly="1"/>
+                    <button name="submit_request" type="object" string="Submit" icon="fa-reply text-warning" confirm="Are you sure to submit OT request?" />
                     <button name="reset_draft" type="object" string="Reset to Draft" class="oe_highlight" confirm="Set OT request to Draft?"/>
                     <button name="button_pm_approve" string="PM Approve" type="object" class="oe_highlight"/>
                     <button name="button_dl_approve" string="Dl Approve" type="object" class="oe_highlight"/>
