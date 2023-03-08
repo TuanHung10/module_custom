@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from dateutil.relativedelta import relativedelta
-from odoo import models, fields, api
-from datetime import datetime
+from odoo import models, fields, api, _
+from odoo.exceptions import ValidationError
 
 
 class OTRequest(models.Model):
@@ -12,15 +11,24 @@ class OTRequest(models.Model):
 
     employee_id = fields.Many2one('hr.employee', string='Employee', required=True,
                                   default=lambda self: self.env.user.employee_ids)
-    project_id = fields.Many2one('project.project', string='Project')
+    project_id = fields.Many2one('project.project', string='Project', required=True)
     manager_id = fields.Many2one('hr.employee', string='Manager', compute='_compute_manager_id')
-    dl_manager_id = fields.Many2one('hr.employee', string='DL Manager')
+    dl_manager_id = fields.Many2one('hr.employee', string='DL Manager', required=True)
     total_hours = fields.Float(string='Total Hours', compute='_compute_total_hours', store=True)
     state = fields.Selection([('draft', 'Draft'), ('to_approve', 'To Approve'), ('pm_approved', 'PM Approved'),
                               ('dl_approved', 'DL Approved'), ('refused', 'Refused')], default='draft')
     create_date = fields.Datetime(string='Created Date', default=fields.Datetime.now)
-    ot_month = fields.Char(string='OT Month', store=True)
+    ot_month = fields.Date(string='OT Month', store=True, readonly=True, compute='_compute_ot_month')
     ot_request_lines = fields.One2many('ot.request.line', 'ot_request_id', string='OT Request Lines')
+
+    @api.depends('ot_request_lines.from_time')
+    def _compute_ot_month(self):
+        for rec in self:
+            latest_from_time = max(rec.ot_request_lines.mapped('from_time'), default=False)
+            if latest_from_time:
+                rec.ot_month = latest_from_time.date()
+            else:
+                rec.ot_month = False
 
     @api.depends('ot_request_lines.ot_hours')
     def _compute_total_hours(self):
@@ -71,7 +79,7 @@ class OTRequest(models.Model):
 
     @api.multi
     def send_dl_notification(self):
-        dl = self.env['hr.employee'].search([('is_dl', '=', True)])
+        dl = self.env['hr.employee'].search([('job_id', '=', 10)])
         if dl:
             mail_template = self.env.ref('ot.mail_template_pm_notification')
             mail_template.write({'email_to': dl.work_email})
@@ -89,8 +97,8 @@ class OTRequestLine(models.Model):
     _description = 'OT Request Line'
 
     ot_request_id = fields.Many2one('ot.request', string='ot Request', ondelete='cascade')
-    from_time = fields.Datetime(string='From Time')
-    to_time = fields.Datetime(string='To Time')
+    from_time = fields.Datetime(string='From Time', required=True)
+    to_time = fields.Datetime(string='To Time', required=True)
     ot_category = fields.Selection(
         [('saturday', 'Saturday'), ('sunday', 'Sunday'), ('normal_day', 'Normal Day'),
          ('normal_day_morning', 'Normal Day Morning'), ('normal_day_night', 'Normal Day Night'),
@@ -152,15 +160,14 @@ class OTRequestLine(models.Model):
                 delta = record.to_time - record.from_time
                 record.ot_hours = delta.total_seconds() / 3600
 
-    # Xu li thang OT month
+        # Xu li OT category
 
-    # Xu li OT category
+        # Phan quyen, button hien thi: PM, DL can not create,edit, delete request
 
-    # Phan quyen, button hien thi: PM, DL can not create,edit, delete request
+        # @api.model tao 1 lan 1 record, @api.model_create_multi tao 1 lan nhieu records (moi lan goi ham)
+        # record la object, model la class
+        #sql_constraints = [
+        # dau tien la id cua constraints ('code_company_uniq', thu 2 la rang buoc ,code voi company_id la truowng 'unique (code, company_id)'), thu 3 la thanh phan thong bao loi~ ('The code must be...')
+        # ]
 
-    #ot request sau khi bi refuse se o state refuse, khi employee bam vao se hien thi nut reset to draft
 
-    # Viet ham late approved se duoc auto tick khi: ban ghi duoc approve vao thoi diem month now != from_time month
-
-    #@api.model tao 1 lan 1 record, @api.model_create_multi tao 1 lan nhieu records (moi lan goi ham)
-    #record la object, model la class
