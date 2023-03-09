@@ -23,17 +23,17 @@
             <form string="OT Request Form">
                 <header>
                     <field name="state" widget="statusbar" readonly="1"/>
-                    <button name="submit_request" type="object" string="Submit" icon="fa-reply text-warning" confirm="Are you sure to submit OT request?" attrs="{'invisible': [('state','!=','draft')]}" />
-                    <button name="reset_draft" type="object" string="Reset to Draft" class="oe_highlight" attrs="{'invisible': [('state','!=','refused')]}" confirm="Set OT request to Draft?"/>
-                    <button name="button_pm_approve" string="PM Approve" type="object" class="oe_highlight" attrs="{'invisible': [('state','!=','to_approve')]}"/>
-                    <button name="button_dl_approve" string="Dl Approve" type="object" class="oe_highlight" attrs="{'invisible': [('state','!=','pm_approved')]}"/>
-                    <button name="refuse_request" type="object" string="Refuse" class="oe_highlight" attrs="{'invisible': [('state','!=','to_approve'),('state','!=','pm_approved')]}" confirm="Are you sure to Refuse the OT request?"/>
+                    <button name="submit_request" type="object" string="Submit" icon="fa-reply text-warning" confirm="Are you sure to submit OT request?" attrs="{'invisible': [('state','!=','draft')]}" groups="ot.group_ot_request_employee"/>
+                    <button name="reset_draft" type="object" string="Reset to Draft" class="oe_highlight" attrs="{'invisible': [('state','!=','refused')]}" confirm="Set OT request to Draft?" groups="ot.group_ot_request_employee"/>
+                    <button name="button_pm_approve" string="PM Approve" type="object" class="oe_highlight" attrs="{'invisible': [('state','!=','to_approve')]}" groups="ot.group_ot_request_pm"/>
+                    <button name="button_dl_approve" string="Dl Approve" type="object" class="oe_highlight" attrs="{'invisible': [('state','!=','pm_approved')]}" groups="ot.group_ot_request_dl"/>
+                    <button name="refuse_request" type="object" string="Refuse" class="oe_highlight" attrs="{'invisible': [('state','!=','to_approve'),('state','!=','pm_approved')]}" groups="ot.group_ot_request_pm,ot.group_ot_request_dl" confirm="Are you sure to Refuse the OT request?"/>
                 </header>
-                <group>
+                <group attrs="{'readonly': [('state', '!=', 'draft')]}">
                     <group>
                         <field name="project_id"/>
                         <field name="dl_manager_id" string="Approver"/>
-                        <field name="ot_month" readonly="1" options="{'datepicker': {'showType': 'months'}}"/>
+                        <field name="ot_month" readonly="1" options="{'datepicker': {'showType': 'months'}}" widget="date"/>
                     </group>
                     <group>
                         <field name="employee_id" readonly="1"/>

@@ -13,6 +13,7 @@
     'depends': ['base', 'hr', 'project', 'mail'],
 
     'data': [
+        'security/security.xml',
         'security/ir.model.access.csv',
         'views/ot.xml',
         'data/mail_template.xml'

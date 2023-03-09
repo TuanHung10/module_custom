@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
-
+import pytz
 from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError
+from datetime import timedelta, datetime
+
+
 
 
 class OTRequest(models.Model):
@@ -91,6 +94,18 @@ class OTRequest(models.Model):
         mail_template.write({'email_to': self.employee_id.work_email})
         mail_template.send_mail(self.id, force_send=True)
 
+    @api.constrains('employee_id', 'manager_id', 'dl_manager_id')
+    def _check_employee_manager(self):
+        for request in self:
+            if request.employee_id == request.manager_id or request.employee_id == request.dl_manager_id:
+                raise ValidationError(_("Employee cannot be the same as the manager or the DL manager."))
+
+    @api.constrains('employee_id', 'dl_manager_id')
+    def _check_dl_manager_department(self):
+        for request in self:
+            if request.employee_id.department_id != request.dl_manager_id.department_id:
+                raise ValidationError(_("DL manager must be from the same department as the employee."))
+
 
 class OTRequestLine(models.Model):
     _name = 'ot.request.line'
@@ -102,7 +117,7 @@ class OTRequestLine(models.Model):
     ot_category = fields.Selection(
         [('saturday', 'Saturday'), ('sunday', 'Sunday'), ('normal_day', 'Normal Day'),
          ('normal_day_morning', 'Normal Day Morning'), ('normal_day_night', 'Normal Day Night'),
-         ('weekend_day_night', 'Weekend Day Night'), ('unknown', 'Unknown')],
+         ('unknown', 'Unknown')],
         string='OT Category', compute='_compute_ot_category', store=True)
     wfh = fields.Boolean(string='WFH')
     job_taken = fields.Char(string='Job Taken')
@@ -115,6 +130,16 @@ class OTRequestLine(models.Model):
     late_approved = fields.Boolean(string='Late Approved')
     notes = fields.Text(string='Notes')
 
+    def tz_utc_to_local(self, utc_time):
+        return utc_time + self.utc_offset()
+
+    def tz_local_to_utc(self, local_time):
+        return local_time - self.utc_offset()
+
+    def utc_offset(self):
+        user_timezone = self.env.user.tz or 'GMT'
+        hours = int(datetime.now(pytz.timezone(user_timezone)).strftime('%z')[:3])
+        return timedelta(hours=hours)
     @api.depends('ot_request.state')
     def _compute_state(self):
         for request in self:
@@ -135,21 +160,26 @@ class OTRequestLine(models.Model):
         for record in self:
             if not record.from_time or not record.to_time:
                 record.ot_category = 'unknown'
-            elif record.from_time.weekday() == 5:
-                record.ot_category = 'saturday'
-            elif record.from_time.weekday() == 6:
-                record.ot_category = 'sunday'
-            elif record.from_time.weekday() < 5 and record.from_time.hour >= 18 and record.from_time.minute >= 30:
-                if record.from_time.hour >= 22 or record.from_time.hour < 6:
-                    record.ot_category = 'normal_day_night'
-                elif 6 <= record.from_time.hour < 8 and record.from_time.minute < 30:
-                    record.ot_category = 'normal_day_morning'
-                else:
-                    record.ot_category = 'normal_day'
-            elif record.from_time.weekday() >= 5 and 6 <= record.from_time.hour < 8 and record.from_time.minute < 30:
-                record.ot_category = 'weekend_day_night'
             else:
-                record.ot_category = 'unknown'
+                from_time = self.tz_utc_to_local(record.from_time)
+                to_time = self.tz_utc_to_local(record.to_time)
+                print(from_time)
+                if from_time.weekday() == 5:
+                    record.ot_category = 'saturday'
+                elif from_time.weekday() == 6:
+                    record.ot_category = 'sunday'
+                elif from_time.hour >= 18 and from_time.minute >= 30:
+                    if from_time.hour >= 22 or from_time.hour < 6:
+                        record.ot_category = 'normal_day_night'
+                    elif 6 <= from_time.hour < 8 and from_time.minute < 30:
+                        record.ot_category = 'normal_day_morning'
+                    else:
+                        record.ot_category = 'normal_day'
+                elif from_time.weekday() >= 5 and 6 <= from_time.hour < 8 and from_time.minute < 30:
+                    record.ot_category = 'weekend_day_night'
+                else:
+                    record.ot_category = 'unknown'
+
 
     @api.depends('from_time', 'to_time')
     def _compute_ot_hours(self):
@@ -160,14 +190,25 @@ class OTRequestLine(models.Model):
                 delta = record.to_time - record.from_time
                 record.ot_hours = delta.total_seconds() / 3600
 
-        # Xu li OT category
+    @api.constrains('ot_request_lines')
+    def _check_total_hours(self):
+        for request in self:
+            total_hours = sum(request.ot_request_lines.mapped('ot_hours'))
+        if total_hours > 24:
+            raise ValidationError(_("Total hours requested for overtime cannot be greater than 24 hours."))
 
-        # Phan quyen, button hien thi: PM, DL can not create,edit, delete request
+    @api.constrains('ot_request_lines')
+    def _check_ot_hours(self):
+        for line in self.ot_request_lines:
+            if line.ot_hours <= 0:
+                raise ValidationError(_("OT hours requested must be greater than zero."))
+
+        # Xu li OT category, late approved
+
+        # Xu li cannot edit != draft
 
         # @api.model tao 1 lan 1 record, @api.model_create_multi tao 1 lan nhieu records (moi lan goi ham)
         # record la object, model la class
-        #sql_constraints = [
+        # sql_constraints = [
         # dau tien la id cua constraints ('code_company_uniq', thu 2 la rang buoc ,code voi company_id la truowng 'unique (code, company_id)'), thu 3 la thanh phan thong bao loi~ ('The code must be...')
         # ]
-
-

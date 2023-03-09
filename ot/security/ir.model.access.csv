@@ -1,3 +1,7 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_ot_request,OT Request,model_ot_request,base.group_user,1,1,1,1
-access_ot_request_line,OT Request Line,model_ot_request_line,base.group_user,1,1,1,1
+access_ot_request_employee,OT Request,model_ot_request,ot.group_ot_request_employee,1,1,1,0
+access_ot_request_pm,OT Request,model_ot_request,ot.group_ot_request_pm,1,1,0,1
+access_ot_request_dl,OT Request,model_ot_request,ot.group_ot_request_dl,1,1,0,1
+access_ot_request_line_employee,OT Request Line,model_ot_request_line,ot.group_ot_request_employee,1,1,1,0
+access_ot_request_line_pm,OT Request Line,model_ot_request_line,ot.group_ot_request_pm,1,1,0,1
+access_ot_request_line_dl,OT Request Line,model_ot_request_line,ot.group_ot_request_dl,1,1,0,1
